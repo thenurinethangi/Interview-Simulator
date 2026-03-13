@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id        String     @id @default(uuid())
+  mode      String     // 'CV' or 'TOPIC'
+  input     String     // The extracted CV text or the Topic entered
+  createdAt DateTime   @default(now())
+  questions Question[]
+}
+
+model Question {
+  id             String    @id @default(uuid())
+  sessionId      String
+  session        Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  text           String
+  isCoding       Boolean   @default(false)
+  userAnswer     String?
+  // Evaluation fields
+  score          Float?
+  level          String?   // Beginner, Intermediate, Professional
+  feedback       String?   // Summary feedback text
+  strengths      String?   // JSON array of strength strings
+  missing        String?   // JSON array of missing/improvement strings
+  timeComplexity String?
+  improvedCode   String?
+  createdAt      DateTime  @default(now())
+}
