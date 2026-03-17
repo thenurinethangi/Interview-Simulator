@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
+import { getUserIdFromCookies } from '@/lib/auth';
 import InterviewFlow from "@/components/InterviewFlow";
 
 interface PageProps {
@@ -10,8 +11,13 @@ export default async function SessionPage({ params }: PageProps) {
     const unresolvedParams = await params;
     const { id } = unresolvedParams;
 
-    const session = await db.session.findUnique({
-        where: { id },
+    const userId = await getUserIdFromCookies();
+    if (!userId) {
+        redirect(`/auth/login?redirect=/session/${id}`);
+    }
+
+    const session = await db.session.findFirst({
+        where: { id, userId },
         include: {
             questions: {
                 orderBy: { createdAt: 'asc' }

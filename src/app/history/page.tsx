@@ -1,4 +1,6 @@
 ﻿import { db } from "@/lib/db";
+import { getUserIdFromCookies } from '@/lib/auth';
+import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { Clock, BookOpen, FileText, Trophy, TrendingUp, BarChart3, CheckCircle2 } from 'lucide-react';
 
@@ -47,7 +49,13 @@ function ScoreDot({ score }: { score: number | null }) {
 }
 
 export default async function HistoryPage() {
+    const userId = await getUserIdFromCookies();
+    if (!userId) {
+        redirect('/auth/login?redirect=/history');
+    }
+
     const sessions = await db.session.findMany({
+        where: { userId },
         orderBy: { createdAt: 'desc' },
         include: { questions: { orderBy: { createdAt: 'asc' } } }
     });
