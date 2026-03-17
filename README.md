@@ -6,112 +6,68 @@
 ![Prisma](https://img.shields.io/badge/Prisma-6.19.2-1B222D?logo=prisma)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-336791?logo=postgresql)
 
-> **IntelliView** is an AI-powered technical interview platform built for real-world, repeatable preparation. It replaces static question banks with a structured, adaptive workflow: context-aware question generation, interactive dual-mode assessment, and persistent progress intelligence.
+**IntelliView** is a comprehensive technical interview simulation platform engineered to facilitate adaptive, dual-mode (theoretical and practical) engineering assessments. 
 
-Designed for continuous usage at scale, IntelliView provides developers with measurable improvement through structured feedback rather than one-time practice.
-
----
-
-## Core Platform Capabilities
-
-### Dynamic Session Orchestration
-* **Targeted Generation:** Initiate interview sessions from two distinct entry points: contextual CV extraction (PDF parsing) or domain-specific topic prompts.
-* **Mixed-Format Output:** Produce role-aligned question sets that seamlessly blend theoretical concepts with practical coding challenges.
-* **Payload Normalization:** Transform raw LLM output into deterministic, strictly typed, and storable payloads.
-
-### Dual-Mode Assessment Workspace
-* **Unified Experience:** A seamless interface for handling both conceptual explanations and implementation-based responses.
-* **Embedded Execution:** Integrated coding environment utilizing `@monaco-editor/react`.
-* **Stateful Progression:** Sequential, client-side question flow with robust session progression tracking.
-
-### AI Evaluation & Feedback Engine
-* **Granular Classification:** Assigns definitive scores and proficiency levels per response.
-* **Structured Remediation:** Delivers distinct feedback isolating technical strengths from missing architectural areas.
-* **Optimal Benchmarking:** Generates benchmark answers for immediate post-submission remediation.
-
-### Longitudinal Performance Tracking
-* **Persistent Intelligence:** User-scoped session data ensures historical retrieval and replay capabilities.
-* **Trend Visibility:** Aggregated analytics to support deliberate, data-driven skill progression over time.
+By replacing static question repositories with a dynamic orchestration engine, the platform parses user context (via CV extraction or domain-specific inputs) to generate deterministic, role-aligned evaluation rubrics. It provides continuous, stateful execution of interview sessions alongside granular, AI-driven performance analytics.
 
 ---
 
-## Product Architecture
+## 1. System Architecture
 
-IntelliView operates as a layered, full-stack TypeScript system with strict operational boundaries.
+IntelliView is constructed as a decoupled, layered full-stack application utilizing TypeScript across all operational boundaries.
 
-### 1. Client Layer
-* Built on the **Next.js App Router** utilizing interactive client components.
-* Responsive UI modules dedicated to onboarding, interview runtime, and historical analytics.
-
-### 2. Orchestration & API Layer
-* Next.js **Route Handlers** govern all backend operations.
-* Complex prompt orchestration for both generation and evaluation lifecycles.
-* Defensive parsing and strict validation layers to mitigate and handle malformed AI payloads.
-
-### 3. Persistence Layer
-* **PostgreSQL** (via Supabase) acts as the system of record.
-* **Prisma ORM** enforces typed data access and seamless schema migrations.
-* Relational model heavily anchored on `User`, `Session`, `Question`, and `RefreshToken` entities.
-
-### 4. Identity & Session Layer
-* Traditional Email/Password authentication coupled with **Google OAuth 2.0** federation.
-* Custom Access/Refresh token lifecycle managed securely via HTTP-only cookies.
+* **Client Presentation Layer:** Built on the Next.js App Router, implementing React Server Components (RSC) where applicable for performance, and interactive client components for the assessment workspace. Integrates `@monaco-editor/react` for the embedded execution environment.
+* **Orchestration & API Layer:** Next.js Route Handlers serve as the primary gateway, managing prompt engineering, AI model invocation, and rigorous payload normalization to ensure malformed LLM outputs are handled defensively.
+* **Persistence Layer:** PostgreSQL (hosted via Supabase) operates as the system of record. The database schema is strictly managed via Prisma ORM, enforcing relational integrity across `User`, `Session`, `Question`, and authentication token entities.
+* **Identity & Access Management:** Implements a custom JWT-based authentication lifecycle (Access and Refresh tokens) deployed via HTTP-only, secure cookies, supplemented by Google OAuth 2.0 federation.
 
 ---
 
-## Operating Model
+## 2. Core Capabilities
 
-### Session Generation Pipeline
-1.  **Initiate:** User selects CV mode or Topic mode.
-2.  **Contract:** Backend constructs the contextual prompt contract.
-3.  **Generate:** Groq LLM returns structured question output.
-4.  **Persist:** Output is normalized and persisted as a `Session` record.
-5.  **Transition:** Client seamlessly transitions to the interview runtime.
+### Context-Aware Session Orchestration
+* **Initialization Vectors:** Sessions can be initialized via PDF parsing (extracting technical stack and experience from a CV) or via explicit domain-topic parameters.
+* **Rubric Generation:** The system orchestrates the Groq API to compile a balanced matrix of conceptual inquiries and algorithmic challenges.
 
-### Evaluation Pipeline
-1.  **Submit:** User submits a text or code answer.
-2.  **Evaluate:** Backend invokes the evaluation model with the exact question context.
-3.  **Store:** Score metrics and feedback artifacts are immediately persisted.
-4.  **Render:** UI updates with quality signals and remediation guidance.
+### Dual-Mode Interactive Assessment
+* **Unified Interface:** A singular, stateful workspace for handling both verbal/theoretical explanations and direct code implementation.
+* **Session State Management:** Tracks sequential progression, ensuring answers are immutably committed prior to advancing the session state.
+
+### AI Evaluation Engine
+* **Deterministic Grading:** Analyzes user submissions against the generated rubric, returning a quantifiable proficiency score.
+* **Granular Remediation:** Isolates architectural misunderstandings from execution errors, returning targeted improvement metrics alongside optimal benchmark solutions.
+
+### Longitudinal Analytics
+* **Persistent Intelligence:** All session artifacts are scoped and persisted, enabling the retrieval and historical replay of prior assessments.
+* **Trend Analysis:** Aggregates response data to expose technical proficiencies and identify systemic skill gaps over time.
 
 ---
 
-## Technology Stack
+## 3. Technology Stack
 
-| Category | Technologies |
+| Domain | Infrastructure / Library |
 | :--- | :--- |
-| **Frontend** | Next.js 16.1.6, React 19.2.3, TypeScript 5, Tailwind CSS 4, Monaco Editor |
-| **Backend** | Next.js Route Handlers, Prisma 6.19.2 |
-| **Database** | PostgreSQL (Supabase) |
-| **Auth** | Custom JWT Access/Refresh Model, Google OAuth 2.0 |
-| **AI Integration** | Groq API (`llama-3.3-70b-versatile`) |
+| **Framework** | Next.js 16.1.6, React 19.2.3 |
+| **Language** | TypeScript 5.0 |
+| **Styling & UI** | Tailwind CSS 4, Lucide React, Monaco Editor |
+| **Database & ORM** | PostgreSQL (Supabase), Prisma 6.19.2 |
+| **Authentication** | Custom JWT Auth, Google OAuth 2.0 |
+| **AI Orchestration** | Groq API (`llama-3.3-70b-versatile`) |
 
 ---
 
-## Local Development Setup
+## 4. Local Development Environment
 
 ### Prerequisites
-* Node.js 20+ & npm
-* PostgreSQL instance (Supabase recommended)
-* Groq API Key
+Ensure the following dependencies are installed in the host environment:
+* Node.js (v20.x or later)
+* npm
+* A target PostgreSQL database instance
+* Active Groq API credentials
 
-### 1. Environment Configuration
-Clone the repository and create a `.env` file in the project root:
+### Initial Setup
 
-```env
-# Application
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-# Database (Prisma)
-DATABASE_URL=postgresql://...                 # Pooled connection
-DIRECT_URL=postgresql://...                   # Direct connection for migrations
-
-# Authentication
-JWT_ACCESS_SECRET=your_access_secret
-JWT_REFRESH_SECRET=your_refresh_secret
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-
-# AI Orchestration
-GROQ_API_KEY=your_groq_api_key
-GROQ_MODEL=llama-3.3-70b-versatile
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/yourusername/intelliview.git](https://github.com/yourusername/intelliview.git)
+   cd intelliview
