@@ -35,6 +35,23 @@ export function middleware(req: NextRequest) {
 
     const accessValid = isValidAccessToken(access);
 
+    // Home should act as the post-auth app entrypoint only.
+    // Unauthenticated users are sent to landing.
+    if (pathname === '/') {
+        if (!accessValid) {
+            return NextResponse.redirect(new URL('/landing', req.url));
+        }
+        return NextResponse.next();
+    }
+
+    // Keep landing public, but logged-in users should not stay there.
+    if (pathname === '/landing') {
+        if (accessValid) {
+            return NextResponse.redirect(new URL('/', req.url));
+        }
+        return NextResponse.next();
+    }
+
     if (isPublic(pathname)) {
         if (accessValid && (pathname === '/auth/login' || pathname === '/auth/register')) {
             return NextResponse.redirect(new URL('/', req.url));
