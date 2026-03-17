@@ -24,7 +24,7 @@ export default async function SessionPage({ params }: PageProps) {
     }
 
     return (
-        <div className="flex-1 flex flex-col h-full bg-white overflow-hidden">
+        <div className="flex-1 flex flex-col h-full bg-(--paper) overflow-hidden">
             <InterviewFlow
                 sessionId={session.id}
                 topic={session.input}

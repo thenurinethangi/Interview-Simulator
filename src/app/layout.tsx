@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
+import AppShell from "@/components/AppShell";
 
-const inter = Inter({ subsets: ["latin"], variable: '--font-inter' });
+const dmSans = DM_Sans({ subsets: ["latin"], weight: ["300", "400", "500", "600"], variable: '--font-dm-sans' });
 
 export const metadata: Metadata = {
-  title: "PrepAI",
-  description: "AI-powered technical interview practice — CV & topic-based sessions with real-time evaluation",
+  title: "IntelliView",
+  description: "AI-powered technical interview practice — CV & topic-based sessions with real-time evaluation and expert answer generation",
 };
 
 export default function RootLayout({
@@ -17,11 +17,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${inter.className} bg-white text-[#0d0d0d] flex h-screen overflow-hidden antialiased`}>
-        <Sidebar />
-        <main className="flex-1 flex flex-col h-full overflow-hidden relative">
-          {children}
-        </main>
+      <body className={`${dmSans.variable} ${dmSans.className} bg-[var(--paper)] text-[var(--ink)] flex h-screen overflow-hidden antialiased`}>
+        <AppShell>{children}</AppShell>
       </body>
     </html>
   );

@@ -3,8 +3,19 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String         @id @default(uuid())
+  email          String         @unique
+  passwordHash   String?
+  name           String?
+  googleId       String?        @unique
+  createdAt      DateTime       @default(now())
+  refreshTokens  RefreshToken[]
+  sessions       Session[]
 }
 
 model Session {
@@ -12,6 +23,8 @@ model Session {
   mode      String     // 'CV' or 'TOPIC'
   input     String     // The extracted CV text or the Topic entered
   createdAt DateTime   @default(now())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   questions Question[]
 }
 
@@ -31,4 +44,14 @@ model Question {
   timeComplexity String?
   improvedCode   String?
   createdAt      DateTime  @default(now())
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid())
+  token      String   @unique
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt  DateTime
+  revoked    Boolean  @default(false)
+  createdAt  DateTime @default(now())
 }

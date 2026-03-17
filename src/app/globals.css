@@ -1,20 +1,17 @@
 @import "tailwindcss";
 
 :root {
-  --bg:            #ffffff;
-  --bg-subtle:     #f9f9f9;
-  --bg-muted:      #f3f4f6;
-  --border:        #e5e7eb;
-  --border-strong: #d1d5db;
-  --text:          #0d0d0d;
-  --text-2:        #374151;
-  --text-3:        #6b7280;
-  --text-muted:    #9ca3af;
-  --accent:        #0d0d0d;
-  --accent-hover:  #1f1f1f;
-  --green:         #10a37f;
-  --green-hover:   #0e9370;
-  --sidebar:       #f9f9f9;
+  --paper:         #faf9f7;
+  --paper-warm:    #f3f1ec;
+  --paper-contrast:#ffffff;
+  --ink:           #0f0e0d;
+  --ink-muted:     #6b6560;
+  --ink-faint:     #b5b0aa;
+  --border:        #e4e1da;
+  --border-strong: #d6d1c9;
+  --accent:        #c8511a;
+  --accent-strong: #a04014;
+  --sidebar:       #f5f1ea;
   --sidebar-w:     248px;
 }
 
@@ -23,9 +20,9 @@
 html { color-scheme: light; }
 
 body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -85,5 +82,45 @@ body {
 /* ── Focus ── */
 textarea:focus, input:focus, select:focus {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(13,13,13,0.08);
+  box-shadow: 0 0 0 2px rgba(15,14,13,0.08);
+}
+
+/* ── IntelliView design tokens ── */
+.intelliview-bg {
+  background: radial-gradient(circle at 20% 20%, rgba(200,81,26,0.06), transparent 35%),
+              radial-gradient(circle at 80% 0%, rgba(160,64,20,0.05), transparent 30%),
+              var(--paper);
+}
+
+.intelliview-gradient-text {
+  background: linear-gradient(135deg, #0f0e0d 0%, #3a2f2a 45%, #c8511a 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.intelliview-logo-shadow {
+  box-shadow: 0 10px 26px rgba(15, 14, 13, 0.18);
+}
+
+.intelliview-btn-primary {
+  background: linear-gradient(135deg, #c8511a, #a04014);
+  box-shadow: 0 4px 14px rgba(200, 81, 26, 0.26);
+  transition: all 0.2s ease;
+}
+.intelliview-btn-primary:hover {
+  background: linear-gradient(135deg, #a04014, #8b3511);
+  box-shadow: 0 6px 20px rgba(160, 64, 20, 0.32);
+  transform: translateY(-1px);
+}
+
+.intelliview-btn-violet {
+  background: linear-gradient(135deg, #0f0e0d, #3a2f2a);
+  box-shadow: 0 4px 14px rgba(15, 14, 13, 0.20);
+  transition: all 0.2s ease;
+}
+.intelliview-btn-violet:hover {
+  background: linear-gradient(135deg, #1f1a17, #0f0e0d);
+  box-shadow: 0 6px 20px rgba(15, 14, 13, 0.26);
+  transform: translateY(-1px);
 }

@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
-const pdfParse = require('pdf-parse');
+import { PDFParse } from 'pdf-parse';
+
+export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
+    let parser: PDFParse | null = null;
     try {
         const formData = await req.formData();
         const file = formData.get('file') as File;
@@ -10,17 +13,35 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'No file provided' }, { status: 400 });
         }
 
-        // Read the file data
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
+        if (!file.name.toLowerCase().endsWith('.pdf')) {
+            return NextResponse.json({ error: 'Only PDF files are supported' }, { status: 400 });
+        }
 
-        // Parse the PDF
-        const data = await pdfParse(buffer);
-        const text = data.text;
+        const arrayBuffer = await file.arrayBuffer();
+        const data = new Uint8Array(arrayBuffer);
+
+        parser = new PDFParse({ data });
+        const result = await parser.getText();
+        const text = (result?.text || '').trim();
+
+        if (!text) {
+            return NextResponse.json(
+                { error: 'No readable text found in this PDF. If it is scanned/image-based, use a text-based PDF.' },
+                { status: 400 }
+            );
+        }
 
         return NextResponse.json({ text }, { status: 200 });
     } catch (error: any) {
         console.error("PDF Parsing Error:", error);
-        return NextResponse.json({ error: 'Failed to extract text from PDF' }, { status: 500 });
+        return NextResponse.json({ error: error?.message || 'Failed to extract text from PDF' }, { status: 500 });
+    } finally {
+        if (parser) {
+            try {
+                await parser.destroy();
+            } catch {
+                // no-op
+            }
+        }
     }
 }

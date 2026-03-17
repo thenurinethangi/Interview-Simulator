@@ -1,13 +1,18 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
 import { db } from '@/lib/db';
+import { generateGroqJson } from '@/lib/groq';
+import { getUserIdFromCookies } from '@/lib/auth';
 
 export async function POST(req: Request) {
     try {
-        if (!process.env.OPENAI_API_KEY) {
-            return NextResponse.json({ error: 'OPENAI_API_KEY is not configured in .env' }, { status: 500 });
+        const apiKey = process.env.GROQ_API_KEY;
+        if (!apiKey) {
+            return NextResponse.json({ error: 'GROQ_API_KEY is not configured in .env' }, { status: 500 });
         }
-        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+        const userId = await getUserIdFromCookies();
+        if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
         const { questionId, answer } = await req.json();
 
         if (!questionId || !answer) {
@@ -15,18 +20,19 @@ export async function POST(req: Request) {
         }
 
         const question = await db.question.findUnique({
-            where: { id: questionId }
+            where: { id: questionId },
+            include: { session: { select: { userId: true } } }
         });
 
         if (!question) {
             return NextResponse.json({ error: 'Question not found' }, { status: 404 });
         }
 
-        const isCodeAnswer = answer.includes('public class') || answer.includes('function ') ||
-            answer.includes('const ') || answer.includes('def ') || answer.includes('=>') ||
-            answer.includes('import ') || question.isCoding;
+        if (question.session.userId !== userId) {
+            return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
 
-        const systemPrompt = `You are a senior technical interviewer evaluating a candidate's answer.
+        const prompt = `You are a senior technical interviewer evaluating a candidate's answer.
 
 Question: "${question.text}"
 Candidate's Answer:
@@ -47,19 +53,13 @@ Return STRICTLY a JSON object with exactly these fields:
 Be constructive and specific. Always populate strengths and missing with at least 1 item each.
 `;
 
-        const completion = await openai.chat.completions.create({
-            model: 'gpt-4o-mini',
-            messages: [
-                { role: 'system', content: 'You are an expert technical evaluator that strictly outputs valid JSON with no markdown.' },
-                { role: 'user', content: systemPrompt }
-            ],
-            response_format: { type: 'json_object' }
+        const result = await generateGroqJson({
+            apiKey,
+            prompt,
+            systemInstruction: 'You are an expert technical evaluator that strictly outputs valid JSON with no markdown.',
+            temperature: 0.2
         });
-
-        const aiResponse = completion.choices[0].message.content;
-        if (!aiResponse) throw new Error('No response from AI');
-
-        const evaluation = JSON.parse(aiResponse);
+        const evaluation = result.data;
 
         const strengthsArr: string[] = Array.isArray(evaluation.strengths) ? evaluation.strengths : [];
         const missingArr: string[] = Array.isArray(evaluation.missing) ? evaluation.missing : [];

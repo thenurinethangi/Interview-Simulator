@@ -1,33 +1,59 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
 import { db } from '@/lib/db';
+import { generateGroqJson } from '@/lib/groq';
+import { randomUUID } from 'crypto';
+import { getUserIdFromCookies } from '@/lib/auth';
+
+const DB_VARCHAR_LIMIT = 191;
+
+const fitVarchar = (value: string, max = DB_VARCHAR_LIMIT) => {
+    const normalized = String(value ?? '').trim();
+    if (normalized.length <= max) return normalized;
+    return normalized.slice(0, max - 1) + '…';
+};
 
 export async function POST(req: Request) {
     try {
-        if (!process.env.OPENAI_API_KEY) {
-            return NextResponse.json({ error: 'OPENAI_API_KEY is not configured in .env' }, { status: 500 });
+        const apiKey = process.env.GROQ_API_KEY;
+        if (!apiKey) {
+            return NextResponse.json({ error: 'GROQ_API_KEY is not configured in .env' }, { status: 500 });
         }
-        const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+        const userId = await getUserIdFromCookies();
+        if (!userId) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
         const { mode, input } = await req.json();
 
         if (!mode || !input) {
             return NextResponse.json({ error: 'Mode and input are required' }, { status: 400 });
         }
 
+        const flavors = [
+            'Emphasize edge cases and constraints; include at least one performance angle.',
+            'Include one debugging-style coding question and one conceptual why/how question.',
+            'Ask about trade-offs and alternatives; include at least one data-structure-focused coding task.',
+            'Include one optimization question and one test-case design angle.',
+            'Mix practical implementation with one theory contrast (pros/cons or when-to-use).'
+        ];
+        const flavor = flavors[Math.floor(Math.random() * flavors.length)];
+
         let promptContext = '';
         if (mode === 'cv') {
-            promptContext = `Based on the following extracted CV text, generate exactly 5 interview questions targeting the candidate's skills.\n\nCV Text:\n${input}`;
+            promptContext = `Based on the following extracted CV text, generate exactly 5 interview questions targeting the candidate's skills. Questions level must match to the candidate current role level.\n\nCV Text:\n${input}`;
         } else {
             promptContext = `Generate exactly 5 interview questions about the following topic: "${input}".`;
         }
 
-        const systemPrompt = `You are an expert technical interviewer.
+        const randomnessToken = randomUUID();
+
+        const prompt = `You are an expert technical interviewer.
 ${promptContext}
 
 Rules:
 1. Generate exactly 5 questions.
 2. Mix theoretical and coding questions (include at least 1 coding question).
 3. Coding questions MUST be simple algorithms or functions (e.g., reverse a string, find max element). Do not ask for multi-file systems or complex architecture design.
+4. Vary phrasing, difficulty, and angle each time even for the same input. Do not repeat the same set across calls. Randomness token: ${randomnessToken}. Flavor: ${flavor}
 4. Return the result STRICTLY as a JSON object containing a "questions" array, where each object has:
   - "text": string (the question text)
   - "isCoding": boolean (true if the user should write code to answer in an IDE, false for a text explanation)
@@ -40,25 +66,25 @@ Example Output:
   ]
 }`;
 
-        // Call OpenAI
-        const completion = await openai.chat.completions.create({
-            model: 'gpt-3.5-turbo', // or gpt-4o-mini depending on what the user's key allows
-            messages: [
-                { role: 'system', content: 'You are a helpful assistant that strictly outputs JSON.' },
-                { role: 'user', content: systemPrompt }
-            ],
-            response_format: { type: 'json_object' }
+        const result = await generateGroqJson({
+            apiKey,
+            prompt,
+            systemInstruction: 'You are a helpful assistant that strictly outputs valid JSON only.',
+            temperature: 1.1
         });
-
-        const aiResponse = completion.choices[0].message.content;
-        if (!aiResponse) throw new Error("No response from AI");
-
-        const parsedData = JSON.parse(aiResponse);
+        const parsedData = result.data;
         const questionsList = parsedData.questions;
 
         if (!Array.isArray(questionsList) || questionsList.length === 0) {
-            throw new Error("Invalid format from AI");
+            throw new Error('Invalid format from Groq');
         }
+
+        const normalizedQuestions = questionsList.slice(0, 5).map((q: any, index: number) => ({
+            text: typeof q?.text === 'string' && q.text.trim().length > 0
+                ? q.text.trim()
+                : `Question ${index + 1}`,
+            isCoding: Boolean(q?.isCoding)
+        }));
 
         // Save Session and Questions into Database
         const sessionUrlMode = mode === 'cv' ? 'CV' : 'TOPIC';
@@ -66,10 +92,11 @@ Example Output:
         const dbSession = await db.session.create({
             data: {
                 mode: sessionUrlMode,
-                input: input,
+                input: fitVarchar(input),
+                userId,
                 questions: {
-                    create: questionsList.map((q: any) => ({
-                        text: q.text,
+                    create: normalizedQuestions.map((q: any) => ({
+                        text: fitVarchar(q.text),
                         isCoding: q.isCoding
                     }))
                 }
@@ -83,6 +110,9 @@ Example Output:
 
     } catch (error: any) {
         console.error("Generate Questions Error:", error);
+        if (error?.code === 'P2000') {
+            return NextResponse.json({ error: 'Request content is too long to store. Please try a shorter topic.' }, { status: 400 });
+        }
         return NextResponse.json({ error: error.message || 'Failed to generate questions' }, { status: 500 });
     }
 }
