@@ -17,7 +17,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${dmSans.variable} ${dmSans.className} bg-[var(--paper)] text-[var(--ink)] flex h-screen overflow-hidden antialiased`}>
+      <body suppressHydrationWarning className={`${dmSans.variable} ${dmSans.className} bg-(--paper) text-(--ink) flex h-screen overflow-hidden antialiased`}>
         <AppShell>{children}</AppShell>
       </body>
     </html>
