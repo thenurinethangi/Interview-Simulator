@@ -69,5 +69,122 @@ Ensure the following dependencies are installed in the host environment:
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/yourusername/intelliview.git](https://github.com/yourusername/intelliview.git)
+   git clone https://github.com/thenurinethangi/Interview-Simulator.git
    cd intelliview
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure environment variables:**  
+   Create a `.env` file in the project root and populate it with the following keys:
+   ```env
+   # Application Routing
+   NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+   # Database Configuration
+   DATABASE_URL=postgresql://...                 # Pooled connection string
+   DIRECT_URL=postgresql://...                   # Direct connection string for migrations
+
+   # Cryptographic Secrets
+   JWT_ACCESS_SECRET=your_secure_access_secret
+   JWT_REFRESH_SECRET=your_secure_refresh_secret
+
+   # OAuth Credentials
+   GOOGLE_CLIENT_ID=your_google_client_id
+   GOOGLE_CLIENT_SECRET=your_google_client_secret
+
+   # Model Orchestration
+   GROQ_API_KEY=your_groq_api_key
+   GROQ_MODEL=llama-3.3-70b-versatile
+   ```
+
+4. **Initialize the database:**  
+   Generate the Prisma client and execute schema migrations:
+   ```bash
+   npx prisma generate
+   npx prisma migrate dev --name init
+   ```
+   > **Note:** Use `npx.cmd prisma generate` if operating within Windows PowerShell.
+
+5. **Start the development server:**
+   ```bash
+   npm run dev
+   ```
+   The application will initialize at `http://localhost:3000`.
+
+---
+
+## 5. API Reference
+
+The platform exposes a structured RESTful API for client-server communication.
+
+### Interview Operations
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/upload-cv` | Accepts `multipart/form-data`. Parses PDF and extracts raw text context. |
+| `POST` | `/api/generate-questions` | Accepts initialization context and returns a persisted session ID. |
+| `POST` | `/api/evaluate-answer` | Grades a specific question payload and returns analytical feedback. |
+| `POST` | `/api/generate-interview-answer` | Requests an optimal technical benchmark for a given prompt. |
+
+### Session Data
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `GET` | `/api/sessions` | Returns an array of historical session metadata scoped to the authenticated user. |
+| `DELETE` | `/api/sessions` | Purges a specific session record and its associated artifacts. |
+
+### Identity Management
+
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/auth/register` | Creates a new user record. |
+| `POST` | `/api/auth/login` | Issues access and refresh tokens. |
+| `POST` | `/api/auth/logout` | Invalidates the current session tokens. |
+| `GET` | `/api/auth/me` | Validates the active access token and returns user context. |
+| `GET` | `/api/auth/google` | Initiates the OAuth 2.0 authorization code flow. |
+| `GET` | `/api/auth/google/callback` | Processes the OAuth callback and issues session tokens. |
+
+---
+
+## 6. CLI Commands
+
+| Command | Description |
+| :--- | :--- |
+| `npm run dev` | Initializes the local development environment. |
+| `npm run build` | Compiles and optimizes the application for production deployment. |
+| `npm run start` | Executes the compiled production artifact. |
+| `npm run lint` | Runs ESLint to enforce code quality and stylistic guidelines. |
+
+---
+
+## 7. License
+
+This project is licensed under the **MIT License**.
+
+```
+MIT License
+
+Copyright (c) 2026 IntelliView
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```
