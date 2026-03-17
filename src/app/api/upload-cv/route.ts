@@ -1,10 +1,9 @@
 import { NextResponse } from 'next/server';
-import { PDFParse } from 'pdf-parse';
+import pdfParse from 'pdf-parse';
 
 export const runtime = 'nodejs';
 
 export async function POST(req: Request) {
-    let parser: PDFParse | null = null;
     try {
         const formData = await req.formData();
         const file = formData.get('file') as File;
@@ -18,10 +17,8 @@ export async function POST(req: Request) {
         }
 
         const arrayBuffer = await file.arrayBuffer();
-        const data = new Uint8Array(arrayBuffer);
-
-        parser = new PDFParse({ data });
-        const result = await parser.getText();
+        const buffer = Buffer.from(arrayBuffer);
+        const result = await pdfParse(buffer);
         const text = (result?.text || '').trim();
 
         if (!text) {
@@ -34,14 +31,20 @@ export async function POST(req: Request) {
         return NextResponse.json({ text }, { status: 200 });
     } catch (error: any) {
         console.error("PDF Parsing Error:", error);
-        return NextResponse.json({ error: error?.message || 'Failed to extract text from PDF' }, { status: 500 });
-    } finally {
-        if (parser) {
-            try {
-                await parser.destroy();
-            } catch {
-                // no-op
-            }
-        }
+        console.error("Error stack:", error?.stack);
+        console.error("Error code:", error?.code);
+        
+        // Return more diagnostic info
+        const errorMsg = error?.message || 'Failed to extract text from PDF';
+        const isDependencyError = errorMsg.includes('cannot find') || errorMsg.includes('not a function');
+        
+        return NextResponse.json(
+            { 
+                error: isDependencyError 
+                    ? `PDF library error (${errorMsg}). Try a different PDF or use Topic mode.`
+                    : errorMsg
+            }, 
+            { status: 500 }
+        );
     }
 }
