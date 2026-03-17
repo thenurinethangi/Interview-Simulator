@@ -17,6 +17,7 @@ const cookieOpts = (maxAge: number, request: Request) => ({
 
 export async function GET(request: Request) {
     try {
+        const origin = process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin;
         const { searchParams } = new URL(request.url);
         const code = searchParams.get('code');
         if (!code) {
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
         }
         const clientId = process.env.GOOGLE_CLIENT_ID;
         const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-        const redirectUri = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/auth/google/callback`;
+        const redirectUri = `${origin}/api/auth/google/callback`;
         if (!clientId || !clientSecret) {
             return NextResponse.json({ error: 'Google client not configured' }, { status: 500 });
         }
@@ -80,7 +81,7 @@ export async function GET(request: Request) {
         const appAccess = signAccessToken(user.id);
         const appRefresh = signRefreshToken(user.id, refreshRecord.id);
 
-        const res = NextResponse.redirect(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000');
+        const res = NextResponse.redirect(origin);
         res.cookies.set('access_token', appAccess, cookieOpts(ACCESS_MAX_AGE, request));
         res.cookies.set('refresh_token', appRefresh, cookieOpts(REFRESH_MAX_AGE, request));
         return res;
