@@ -1,195 +1,153 @@
 # IntelliView
 
-Launch-ready AI interview platform for CV-driven and topic-driven technical practice.
+IntelliView is an AI-powered technical interview platform built for real-world, repeatable preparation. It replaces static question banks with a structured, adaptive workflow: context-aware question generation, interactive dual-mode assessment, and persistent progress intelligence.
 
-IntelliView provides a complete preparation workflow: generate interview sets, answer in a structured interface, receive actionable evaluation, and track progress over time. The product is built for daily use by students and developers who want practical interview improvement, not static question browsing.
+The product is designed for continuous usage at scale by students and developers who need measurable improvement, not one-time practice.
 
----
+## Core Platform Capabilities
 
-## Product Launch Overview
+### Dynamic Session Orchestration
 
-Interview preparation is most effective when it is:
+- Generate targeted interview sessions from two entry points:
+  - CV context (PDF extraction)
+  - Topic-defined prompts
+- Produce role-aligned, mixed-format question sets (coding + theory)
+- Normalize model output into deterministic, storable payloads
 
-- personalized to user context,
-- measurable over repeated sessions,
-- and fast enough to use consistently.
+### Dual-Mode Assessment Workspace
 
-IntelliView is designed around that standard. Users can begin from a resume or a target topic, practice in mixed-mode sessions (coding + theory), and receive evaluation feedback they can immediately apply in the next round.
+- Unified experience for conceptual and implementation-based responses
+- Integrated coding interface via Monaco Editor
+- Sequential question flow with stateful session progression
 
----
+### AI Evaluation and Feedback Engine
 
-## What Users Can Do
+- Score and level classification per response
+- Structured feedback with strengths and missing areas
+- Optional benchmark/optimized answer generation for remediation
 
-### 1) Start Smart Sessions
+### Longitudinal Performance Tracking
 
-- Upload a resume (PDF) and generate targeted interview questions from extracted context.
-- Enter a topic and generate focused question sets for fast revision.
+- User-scoped session persistence
+- Historical retrieval and replay of prior sessions
+- Trend visibility to support deliberate skill progression
 
-### 2) Practice in Real Interview Format
+## Product Architecture
 
-- Handle conceptual and coding prompts in one flow.
-- Write coding answers directly in an embedded editor.
-- Submit responses question-by-question with continuous progression tracking.
+IntelliView is built as a layered, full-stack TypeScript system with clear operational boundaries.
 
-### 3) Get Actionable Feedback
+### Client Layer
 
-- Receive score and level indicators.
-- Review strengths and improvement points.
-- Access optimized responses for better answer patterns.
+- Next.js App Router pages and interactive client components
+- Responsive UI modules for onboarding, interview flow, and history
+- Real-time editor interactions for coding assessments
 
-### 4) Track Longitudinal Progress
+### Orchestration and API Layer
 
-- Store completed sessions.
-- Revisit past attempts.
-- Use trend visibility to improve consistently over time.
+- Route Handlers in Next.js for all backend operations
+- Prompt orchestration for generation and evaluation flows
+- Validation and defensive parsing to handle malformed AI payloads
 
----
+### Persistence Layer
 
-## Why Teams and Users Choose IntelliView
+- PostgreSQL (Supabase) as the system of record
+- Prisma ORM for typed data access and schema control
+- Relational model anchored on User, Session, Question, and RefreshToken entities
 
-- Personalization: practice sessions generated from user profile or specific technical domains.
-- Clarity: feedback designed to explain how to improve, not only what score was assigned.
-- Consistency: repeatable workflow for daily preparation.
-- Reliability: persistent data, user-scoped records, and secure authenticated access.
-- Accessibility: responsive interface that works across desktop and mobile.
+### Identity and Session Layer
 
----
+- Email/password authentication
+- Google OAuth 2.0 federation
+- Access/refresh token lifecycle managed through secure HTTP-only cookies
 
-## Platform Architecture
+## Operating Model
 
-IntelliView is implemented as a full-stack TypeScript platform with clear boundaries between presentation, APIs, authentication, and persistence.
-
-### Application Layer
-
-- Next.js App Router for page and route composition.
-- Client components for interactive interview flow and editor behavior.
-- Route handlers (`/api/*`) for backend operations.
-
-### Data Layer
-
-- PostgreSQL (Supabase) as primary data store.
-- Prisma ORM for typed data access and schema migrations.
-- Relational model centered on users, sessions, questions, and refresh tokens.
-
-### AI Layer
-
-- Groq-powered generation and evaluation endpoints.
-- Structured response normalization before persistence.
-- Defensive checks for malformed model output.
-
-### Identity Layer
-
-- Email/password authentication.
-- Google OAuth sign-in.
-- Cookie-based JWT access/refresh lifecycle.
-
----
-
-## System Workflow
-
-### Session Generation
+### Session Generation Pipeline
 
 1. User selects CV mode or topic mode.
-2. Backend composes AI prompt context.
-3. Model returns normalized question payload.
-4. Session and question set are persisted.
-5. User enters guided interview flow.
+2. Backend builds contextual prompt contract.
+3. Groq returns structured question output.
+4. Output is normalized and persisted as a session.
+5. Client transitions to interview runtime.
 
-### Evaluation
+### Evaluation Pipeline
 
-1. User submits text/code answer.
-2. Backend evaluates using AI with current question context.
-3. Score and feedback artifacts are saved.
-4. UI renders outcome and next-step guidance.
+1. User submits answer (text or code).
+2. Backend invokes evaluation model with current question context.
+3. Score and feedback artifacts are persisted.
+4. UI renders immediate quality signals and remediation guidance.
 
-### Progress
+### History and Analytics Pipeline
 
-1. User opens history.
-2. Server returns only owner-scoped sessions.
-3. Aggregates and per-session details are presented for review.
+1. User opens history surface.
+2. Server resolves only owner-scoped records.
+3. Session-level and aggregate signals are computed for review.
 
----
+## Technology Stack
 
-## Technology Stack (Modern Web)
+| Category | Technologies |
+|---|---|
+| Frontend | Next.js 16.1.6, React 19.2.3, TypeScript 5, Tailwind CSS 4, Monaco Editor, Lucide React |
+| Backend | Next.js Route Handlers, Prisma 6.19.2 |
+| Database | PostgreSQL (Supabase) |
+| Authentication | JWT Access/Refresh Model, Google OAuth 2.0 |
+| AI Integration | Groq API (Generation and Evaluation Endpoints) |
 
-### Frontend
+## Repository Structure
 
-- Next.js 16.1.6
-- React 19.2.3
-- TypeScript 5
-- Tailwind CSS 4
-- Monaco Editor (`@monaco-editor/react`)
-- Lucide React
+```text
+.
+├── src/
+│   ├── app/                # App Router pages, layouts, API route handlers
+│   │   └── api/            # Backend endpoints
+│   ├── components/         # Reusable UI + interview interaction modules
+│   └── lib/                # Shared services (db, auth, groq)
+├── prisma/
+│   ├── schema.prisma       # Relational schema definition
+│   └── migrations/         # Database migration history
+├── middleware.ts           # Route protection and navigation enforcement
+└── README.md
+```
 
-### Backend
-
-- Next.js Route Handlers
-- Prisma 6.19.2
-- JWT-based session model
-- Google OAuth 2.0 integration
-
-### Data & Infra
-
-- PostgreSQL (Supabase)
-- Prisma migration system
-
-### AI
-
-- Groq API (generation + evaluation)
-
----
-
-## Repository Layout
-
-- `src/app/`
-  - App Router pages
-  - API endpoints in `src/app/api/*`
-- `src/components/`
-  - Interview and navigation modules
-- `src/lib/`
-  - Shared services (`db`, auth, Groq)
-- `prisma/schema.prisma`
-  - Data model and datasource definition
-- `prisma/migrations/`
-  - Schema migration history
-
----
-
-## Local Setup
+## Local Development Setup
 
 ### Prerequisites
 
 - Node.js 20+
 - npm
-- PostgreSQL database (Supabase recommended)
+- PostgreSQL instance (Supabase recommended)
+- Groq API key
 
-### Step 1: Install dependencies
+### 1. Install Dependencies
 
 ```bash
 npm install
 ```
 
-### Step 2: Configure environment
+### 2. Configure Environment Variables
 
-Create `.env` in project root:
+Create a `.env` file in the project root:
 
 ```env
+# Application
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 
-DATABASE_URL=postgresql://...                # pooled connection
-DIRECT_URL=postgresql://...                  # direct connection for migrations
+# Database (Prisma)
+DATABASE_URL=postgresql://...                 # pooled connection
+DIRECT_URL=postgresql://...                   # direct connection for migrations
 
-JWT_ACCESS_SECRET=...
-JWT_REFRESH_SECRET=...
+# Authentication
+JWT_ACCESS_SECRET=your_access_secret
+JWT_REFRESH_SECRET=your_refresh_secret
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
 
-GROQ_API_KEY=...
-GROQ_MODEL=...                               # optional
-
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
+# AI
+GROQ_API_KEY=your_groq_api_key
+GROQ_MODEL=llama-3.3-70b-versatile            # optional
 ```
 
-### Step 3: Generate Prisma client
+### 3. Initialize Prisma Client
 
 ```bash
 npx prisma generate
@@ -201,37 +159,35 @@ PowerShell fallback:
 npx.cmd prisma generate
 ```
 
-### Step 4: Run migrations
+### 4. Apply Migrations
 
 ```bash
 npx prisma migrate dev --name init
 ```
 
-### Step 5: Start local server
+### 5. Run the Application
 
 ```bash
 npm run dev
 ```
 
-Open `http://localhost:3000`.
+Application URL: `http://localhost:3000`
 
----
+## API Surface Reference
 
-## API Surface
-
-### Interview APIs
+### Interview Engine
 
 - `POST /api/upload-cv`
 - `POST /api/generate-questions`
 - `POST /api/evaluate-answer`
 - `POST /api/generate-interview-answer`
 
-### Session APIs
+### Session Management
 
 - `GET /api/sessions`
 - `DELETE /api/sessions`
 
-### Auth APIs
+### Identity and Auth
 
 - `POST /api/auth/register`
 - `POST /api/auth/login`
@@ -240,11 +196,9 @@ Open `http://localhost:3000`.
 - `GET /api/auth/google`
 - `GET /api/auth/google/callback`
 
----
+## Available Scripts
 
-## Scripts
-
-- `npm run dev` - development server
-- `npm run build` - production build
-- `npm run start` - run built app
-- `npm run lint` - lint checks
+- `npm run dev` - start development runtime
+- `npm run build` - compile for production
+- `npm run start` - run built artifact
+- `npm run lint` - execute lint checks
