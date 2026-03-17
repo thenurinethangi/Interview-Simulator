@@ -1,141 +1,130 @@
 # IntelliView
 
-AI-powered technical interview practice platform with CV-based and topic-based sessions, instant answer evaluation, and progress history.
+IntelliView is a production-grade AI interview simulation platform engineered for serious technical preparation. It combines CV-aware and topic-aware question orchestration, structured answer evaluation, and longitudinal practice analytics in a unified workflow.
 
-## Overview
+Built as a full-stack TypeScript system on modern web infrastructure, the platform is designed for low-friction iteration, strong data consistency, and clean operational deployment.
 
-IntelliView helps learners prepare for technical interviews by generating targeted questions, evaluating answers with actionable feedback, and tracking progress over time.
+## Product Scope
 
-Core capabilities:
+- Multi-mode interview session generation (CV-driven and topic-driven)
+- Hybrid question model (conceptual + coding prompts)
+- AI evaluation pipeline with structured feedback artifacts
+- Session persistence, replayability, and history analytics
+- Credential auth plus federated Google OAuth flow
+- Consistent responsive UI for desktop and mobile
 
-- CV-based session generation (PDF upload + extraction)
-- Topic-based question generation
-- Mixed interview format (coding + conceptual questions)
-- AI evaluation with strengths, missing points, and score
-- Session history and per-user data isolation
-- Authentication with email/password and Google OAuth
+## Engineering Profile
 
-## Tech Stack
+- App Router-first architecture with server and client boundary discipline
+- Relational persistence with Prisma schema governance and migrations
+- API route design optimized for deterministic JSON contracts
+- Cookie-based JWT session model with refresh-token lifecycle management
+- Strict user-data ownership model across session and history surfaces
+- Production-targeted code organization with clear domain separation
 
-- Next.js 16 (App Router)
-- React 19 + TypeScript
-- Prisma ORM
+## Modern Tech Stack
+
+### Runtime and Framework
+
+- Next.js 16.1.6
+- React 19.2.3
+- TypeScript 5
+
+### Data and Persistence
+
 - PostgreSQL (Supabase)
-- Groq API for generation/evaluation
+- Prisma 6.19.2
+
+### AI and Evaluation
+
+- Groq API (LLM-backed generation and assessment)
+
+### Authentication and Security
+
+- JWT access + refresh token model
 - Google OAuth 2.0
+- HTTP-only secure cookie strategy
 
-## Project Structure
+### Frontend and Developer Experience
 
-- `src/app/` - App Router pages and API routes
-- `src/components/` - shared UI components (`Sidebar`, `InterviewFlow`)
-- `src/lib/` - database and auth utilities
-- `prisma/schema.prisma` - data models and datasource
+- Tailwind CSS 4
+- Monaco Editor integration for coding responses
+- ESLint 9 with Next.js config
+
+## Repository Structure
+
+- `src/app/` - App Router pages and backend API routes
+- `src/components/` - core UI modules (`InterviewFlow`, `Sidebar`, app shell)
+- `src/lib/` - shared infrastructure (`db`, auth, model clients)
+- `prisma/schema.prisma` - relational schema and datasource config
 - `prisma/migrations/` - migration history
 
-## Environment Variables
+## Local Setup
 
-Create a `.env` file with the following keys:
-
-```env
-NEXT_PUBLIC_APP_URL=http://localhost:3000
-
-DATABASE_URL=postgresql://... (pooled URL)
-DIRECT_URL=postgresql://... (direct URL)
-
-JWT_ACCESS_SECRET=...
-JWT_REFRESH_SECRET=...
-
-GROQ_API_KEY=...
-GROQ_MODEL=... # optional
-
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-```
-
-Notes:
-
-- Use pooled URL in `DATABASE_URL` and direct URL in `DIRECT_URL` for Prisma migrations.
-- For Supabase, include `sslmode=require` where applicable.
-
-## Local Development
-
-1. Install dependencies:
+### 1) Install dependencies
 
 ```bash
 npm install
 ```
 
-2. Generate Prisma client:
+### 2) Configure environment
+
+Create `.env` with the required values:
+
+```env
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+DATABASE_URL=postgresql://...          # pooled connection
+DIRECT_URL=postgresql://...            # direct connection for migrations
+
+JWT_ACCESS_SECRET=...
+JWT_REFRESH_SECRET=...
+
+GROQ_API_KEY=...
+GROQ_MODEL=...                         # optional override
+
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+```
+
+### 3) Generate Prisma client
 
 ```bash
 npx prisma generate
 ```
 
-3. Run migrations:
+### 4) Apply database migrations
 
 ```bash
 npx prisma migrate dev --name init
 ```
 
-4. Start dev server:
+### 5) Start the application
 
 ```bash
 npm run dev
 ```
 
-5. Open:
+Open `http://localhost:3000`.
 
-`http://localhost:3000`
+## NPM Scripts
 
-## Auth & Access Rules
+- `npm run dev` - run local development server
+- `npm run build` - create production build
+- `npm run start` - start production server
+- `npm run lint` - run static lint checks
 
-- Unauthenticated users are redirected from home (`/`) to landing (`/landing`).
-- Authenticated users can access home, session pages, and history.
-- History and session details are user-scoped.
-- Protected APIs require a valid access token cookie.
+## API Surface
 
-## Deployment (Vercel + Supabase)
-
-1. Push repo to GitHub.
-2. Import project in Vercel.
-3. Add all environment variables in Vercel Project Settings.
-4. Set:
-
-`NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app`
-
-5. Configure Google OAuth:
-
-- Authorized JavaScript origin: `https://your-domain.vercel.app`
-- Authorized redirect URI: `https://your-domain.vercel.app/api/auth/google/callback`
-
-6. Deploy on Vercel.
-7. Apply production migrations:
-
-```bash
-npx prisma migrate deploy
-```
-
-## Scripts
-
-- `npm run dev` - start local dev server
-- `npm run build` - production build
-- `npm run start` - run production server
-- `npm run lint` - run lint checks
-
-## API Surface (High-Level)
-
+- `POST /api/upload-cv`
 - `POST /api/generate-questions`
 - `POST /api/evaluate-answer`
 - `POST /api/generate-interview-answer`
-- `POST /api/upload-cv`
-- `GET/DELETE /api/sessions`
-- `POST /api/auth/login`
+- `GET /api/sessions`
+- `DELETE /api/sessions`
 - `POST /api/auth/register`
+- `POST /api/auth/login`
 - `POST /api/auth/logout`
 - `GET /api/auth/me`
 - `GET /api/auth/google`
 - `GET /api/auth/google/callback`
-
-## License
-
-This project is for educational and portfolio use.
