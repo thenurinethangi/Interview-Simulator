@@ -1,4 +1,4 @@
-# IntelliView
+# IntelliView - dual mode AI interview simulator
 
 IntelliView is a production-grade interview simulation platform that combines LLM-driven question generation, structured answer evaluation, and persistent progress analytics in a single application workflow.
 
