@@ -158,3 +158,20 @@ The platform exposes a structured RESTful API for client-server communication.
 | `npm run build` | Compiles and optimizes the application for production deployment. |
 | `npm run start` | Executes the compiled production artifact. |
 | `npm run lint` | Runs ESLint to enforce code quality and stylistic guidelines. |
+
+---
+
+## 7. Project Screenshots
+
+![Landing Page](public/Screenshot%20(1290).png)
+![Authentication Screen](public/Screenshot%20(1291).png)
+![Dashboard](public/Screenshot%20(1292).png)
+![Interview Setup](public/Screenshot%20(1294).png)
+![Question Workspace](public/Screenshot%20(1295).png)
+![Code Editor View](public/Screenshot%20(1296).png)
+![Evaluation Feedback](public/Screenshot%20(1297).png)
+![Session Results](public/Screenshot%20(1298).png)
+![History Page](public/Screenshot%20(1299).png)
+![Profile and Sidebar](public/Screenshot%20(1300).png)
+![Additional App Screen](public/Screenshot%20(1301).png)
+![Additional App Screen](public/Screenshot%20(1302).png)
