@@ -17,6 +17,21 @@ function HomeContent() {
   const router = useRouter();
   const params = useSearchParams();
 
+  const parseApiResponse = async (res: Response) => {
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      return await res.json();
+    }
+
+    const text = await res.text();
+    // Prevent HTML error pages from causing a JSON parse crash in the UI.
+    if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
+      throw new Error('Server returned an HTML error page instead of JSON. Check API route logs and deployment env vars.');
+    }
+
+    throw new Error(text || 'Unexpected non-JSON response from server.');
+  };
+
   const [activeMode, setActiveMode] = useState<'cv' | 'topic' | null>(null);
   const [topic, setTopic] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -36,7 +51,7 @@ function HomeContent() {
         method: 'POST',
         body: formData,
       });
-      const uploadData = await uploadRes.json();
+      const uploadData = await parseApiResponse(uploadRes);
       if (!uploadRes.ok) throw new Error(uploadData.error || 'Failed to extract CV');
 
       setLoadingMsg('Generating evaluation rubric…');
@@ -45,7 +60,7 @@ function HomeContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: 'cv', input: uploadData.text }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) throw new Error(data.error || 'Failed to generate');
 
       router.push(`/session/${data.sessionId}`);
@@ -68,7 +83,7 @@ function HomeContent() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mode: 'topic', input: topic }),
       });
-      const data = await res.json();
+      const data = await parseApiResponse(res);
       if (!res.ok) throw new Error(data.error || 'Failed to generate');
 
       router.push(`/session/${data.sessionId}`);
