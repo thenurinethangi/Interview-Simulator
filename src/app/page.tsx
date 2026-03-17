@@ -13,6 +13,9 @@ const EXAMPLE_TOPICS = [
   'System Design: URL Shortener',
 ];
 
+const MAX_CV_SIZE_MB = 4;
+const MAX_CV_SIZE_BYTES = MAX_CV_SIZE_MB * 1024 * 1024;
+
 function HomeContent() {
   const router = useRouter();
   const params = useSearchParams();
@@ -23,13 +26,17 @@ function HomeContent() {
       return await res.json();
     }
 
+    if (res.status === 413) {
+      throw new Error(`PDF is too large. Please upload a file smaller than ${MAX_CV_SIZE_MB}MB.`);
+    }
+
     const text = await res.text();
     // Prevent HTML error pages from causing a JSON parse crash in the UI.
     if (text.trim().startsWith('<!DOCTYPE') || text.trim().startsWith('<html')) {
-      throw new Error('Server returned an HTML error page instead of JSON. Check API route logs and deployment env vars.');
+      throw new Error(`Server returned an HTML error page (HTTP ${res.status}). This usually means an upload limit issue or a server crash. Check Vercel Function logs and env vars.`);
     }
 
-    throw new Error(text || 'Unexpected non-JSON response from server.');
+    throw new Error(text || `Unexpected non-JSON response from server (HTTP ${res.status}).`);
   };
 
   const [activeMode, setActiveMode] = useState<'cv' | 'topic' | null>(null);
@@ -41,6 +48,17 @@ function HomeContent() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const startCV = async (file: File) => {
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
+      alert('Only PDF files are supported.');
+      return;
+    }
+
+    if (file.size > MAX_CV_SIZE_BYTES) {
+      alert(`PDF is too large. Please upload a file smaller than ${MAX_CV_SIZE_MB}MB.`);
+      return;
+    }
+
     setIsLoading(true);
     setLoadingMsg('Extracting curriculum from document…');
     try {

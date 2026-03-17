@@ -3,6 +3,8 @@ import { PDFParse } from 'pdf-parse';
 
 export const runtime = 'nodejs';
 
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
+
 export async function POST(req: Request) {
     let parser: PDFParse | null = null;
     try {
@@ -15,6 +17,10 @@ export async function POST(req: Request) {
 
         if (!file.name.toLowerCase().endsWith('.pdf')) {
             return NextResponse.json({ error: 'Only PDF files are supported' }, { status: 400 });
+        }
+
+        if (file.size > MAX_UPLOAD_BYTES) {
+            return NextResponse.json({ error: 'PDF is too large. Max allowed size is 4MB.' }, { status: 413 });
         }
 
         const arrayBuffer = await file.arrayBuffer();
