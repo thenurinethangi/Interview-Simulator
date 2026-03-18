@@ -540,7 +540,7 @@ export default function InterviewFlow({ sessionId, topic, mode, initialQuestions
                             <span className="iv-q-num">Question {currentIndex + 1}</span>
                             <span className="iv-q-type">{currentQ.isCoding ? 'Coding' : 'Theoretical'}</span>
                             {(() => {
-                                const match = currentQ.text.match(/^\[(Easy|Medium|Hard|Junior|Associate|Mid-level|Senior)\]\s*(.*)/i);
+                                const match = currentQ.text.match(/^\[(Easy|Medium|Hard|Junior|Associate|Mid-level|Senior)\]\s*([\s\S]*)/i);
                                 if (match) {
                                     const tag = match[1];
                                     let diffClass = 'diff-medium';
@@ -551,9 +551,9 @@ export default function InterviewFlow({ sessionId, topic, mode, initialQuestions
                                 return null;
                             })()}
                         </div>
-                        <p className="iv-question-text">
+                        <p className="iv-question-text" style={{ whiteSpace: 'pre-wrap' }}>
                             {(() => {
-                                const match = currentQ.text.match(/^\[(Easy|Medium|Hard|Junior|Associate|Mid-level|Senior)\]\s*(.*)/i);
+                                const match = currentQ.text.match(/^\[(Easy|Medium|Hard|Junior|Associate|Mid-level|Senior)\]\s*([\s\S]*)/i);
                                 return match ? match[2] : currentQ.text;
                             })()}
                         </p>
