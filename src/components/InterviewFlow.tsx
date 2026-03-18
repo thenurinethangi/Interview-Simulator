@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import Editor from '@monaco-editor/react';
@@ -318,7 +318,7 @@ export default function InterviewFlow({ sessionId, topic, mode, initialQuestions
 
                 .iv-editor-wrap {
                     border: 1px solid var(--border); border-radius: 10px;
-                    overflow: hidden;
+                    overflow: hidden; padding: 16px; background: #fff;
                 }
 
                 .iv-textarea {
@@ -593,6 +593,7 @@ export default function InterviewFlow({ sessionId, topic, mode, initialQuestions
                                                 minimap: { enabled: false },
                                                 wordWrap: 'on',
                                                 scrollBeyondLastLine: false,
+                                                padding: { top: 8, bottom: 8 },
                                                 tabSize: 2,
                                                 insertSpaces: true,
                                                 automaticLayout: true,
@@ -734,7 +735,23 @@ export default function InterviewFlow({ sessionId, topic, mode, initialQuestions
                                     </button>
                                     {showImproved && (
                                         <div className="iv-expand-body">
-                                            <div className="iv-code-block">{currentQ.improvedCode}</div>
+                                            <div style={{ background: '#111', padding: '16px' }}>
+                                                <Editor
+                                                    height="320px"
+                                                    language={language === 'cpp' ? 'cpp' : language === 'c' ? 'c' : language}
+                                                    theme="vs-dark"
+                                                    value={currentQ.improvedCode || ''}
+                                                    options={{
+                                                        readOnly: true,
+                                                        fontSize: 13,
+                                                        minimap: { enabled: false },
+                                                        wordWrap: 'on',
+                                                        scrollBeyondLastLine: false,
+                                                        padding: { top: 8, bottom: 8 },
+                                                        automaticLayout: true,
+                                                    }}
+                                                />
+                                            </div>
                                         </div>
                                     )}
                                 </div>

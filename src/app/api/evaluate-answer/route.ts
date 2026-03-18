@@ -48,7 +48,7 @@ Return STRICTLY a JSON object with exactly these fields:
 - "strengths": array of strings (2-4 specific things the candidate did well. Each item is a short phrase.)
 - "missing": array of strings (2-4 specific gaps, mistakes, or things missing. Each item is a short phrase.)
 - "timeComplexity": string or null (ONLY if the answer is code/algorithm, e.g. "O(N) Time, O(1) Space". Otherwise null.)
-- "improvedCode": string or null (ONLY if the answer contains code, provide an improved version as a code string. Otherwise null.)
+- "improvedCode": string or null (ONLY if the answer contains code, provide an improved version as a properly formatted, multi-line code string with correct indentation and newlines. Do NOT provide it as a single line string. Do NOT wrap it in markdown codeblocks. Otherwise null.)
 
 Be constructive and specific. Always populate strengths and missing with at least 1 item each.
 `;
