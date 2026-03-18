@@ -1,12 +1,11 @@
 import { NextResponse } from 'next/server';
+import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs';
 
 export const runtime = 'nodejs';
+const MAX_UPLOAD_BYTES = 4 * 1024 * 1024;
 
 export async function POST(req: Request) {
     try {
-        const pdfParseModule = await import('pdf-parse');
-        const pdfParse = (pdfParseModule as any).default || (pdfParseModule as any);
-
         const formData = await req.formData();
         const file = formData.get('file') as File;
 
@@ -18,10 +17,28 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Only PDF files are supported' }, { status: 400 });
         }
 
+        if (file.size > MAX_UPLOAD_BYTES) {
+            return NextResponse.json({ error: 'PDF is too large. Please upload a file under 4MB.' }, { status: 413 });
+        }
+
         const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        const result = await pdfParse(buffer);
-        const text = (result?.text || '').trim();
+        const bytes = new Uint8Array(arrayBuffer);
+        const loadingTask = getDocument({ data: bytes });
+        const pdf = await loadingTask.promise;
+
+        let text = '';
+        for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+            const page = await pdf.getPage(pageNumber);
+            const content = await page.getTextContent();
+            const pageText = content.items
+                .map((item: any) => ('str' in item ? item.str : ''))
+                .join(' ')
+                .trim();
+            if (pageText) text += pageText + '\n';
+        }
+
+        await pdf.destroy();
+        text = text.trim();
 
         if (!text) {
             return NextResponse.json(
@@ -35,17 +52,12 @@ export async function POST(req: Request) {
         console.error("PDF Parsing Error:", error);
         console.error("Error stack:", error?.stack);
         console.error("Error code:", error?.code);
-        
-        // Return more diagnostic info
+
         const errorMsg = error?.message || 'Failed to extract text from PDF';
-        const isDependencyError = errorMsg.includes('cannot find') || errorMsg.includes('not a function');
-        
         return NextResponse.json(
-            { 
-                error: isDependencyError 
-                    ? `PDF library error (${errorMsg}). Try a different PDF or use Topic mode.`
-                    : errorMsg
-            }, 
+            {
+                error: `PDF parsing failed: ${errorMsg}`
+            },
             { status: 500 }
         );
     }
