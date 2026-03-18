@@ -318,7 +318,7 @@ export default function InterviewFlow({ sessionId, topic, mode, initialQuestions
 
                 .iv-editor-wrap {
                     border: 1px solid var(--border); border-radius: 10px;
-                    overflow: hidden; padding: 16px; background: #fff;
+                    overflow: hidden;
                 }
 
                 .iv-textarea {
@@ -593,7 +593,9 @@ export default function InterviewFlow({ sessionId, topic, mode, initialQuestions
                                                 minimap: { enabled: false },
                                                 wordWrap: 'on',
                                                 scrollBeyondLastLine: false,
-                                                padding: { top: 8, bottom: 8 },
+                                                padding: { top: 24, bottom: 24 },
+                                                lineNumbersMinChars: 4,
+                                                lineDecorationsWidth: 16,
                                                 tabSize: 2,
                                                 insertSpaces: true,
                                                 automaticLayout: true,
@@ -735,7 +737,7 @@ export default function InterviewFlow({ sessionId, topic, mode, initialQuestions
                                     </button>
                                     {showImproved && (
                                         <div className="iv-expand-body">
-                                            <div style={{ background: '#111', padding: '16px' }}>
+                                            <div style={{ background: '#111' }}>
                                                 <Editor
                                                     height="320px"
                                                     language={language === 'cpp' ? 'cpp' : language === 'c' ? 'c' : language}
@@ -747,7 +749,9 @@ export default function InterviewFlow({ sessionId, topic, mode, initialQuestions
                                                         minimap: { enabled: false },
                                                         wordWrap: 'on',
                                                         scrollBeyondLastLine: false,
-                                                        padding: { top: 8, bottom: 8 },
+                                                        padding: { top: 24, bottom: 24 },
+                                                        lineNumbersMinChars: 4,
+                                                        lineDecorationsWidth: 16,
                                                         automaticLayout: true,
                                                     }}
                                                 />
