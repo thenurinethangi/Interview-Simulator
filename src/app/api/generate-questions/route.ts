@@ -61,7 +61,7 @@ export async function POST(req: Request) {
 
         let promptContext = '';
         if (mode === 'cv') {
-            promptContext = `Based on the following extracted CV text, generate exactly 5 interview questions targeting the candidate's skills. Questions level must match to the candidate current role level.\n\nCV Text:\n${input}`;
+            promptContext = `Based on the following extracted CV text, determine the candidate's experience level (e.g., Junior/Associate, Mid-level, Senior, etc.). Generate exactly 5 interview questions targeting the candidate's skills. The complexity and scope of the questions MUST strictly match their experience level. For example, if the position/experience is at the Associate level, the questions must be scoped to that level and not be overly hard or Senior-level. If the candidate is Senior, the questions should be suitably complex and challenging.\n\nCV Text:\n${input}`;
         } else {
             promptContext = `Generate exactly 5 interview questions about the following topic: "${input}".`;
         }
