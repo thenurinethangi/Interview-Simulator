@@ -266,6 +266,9 @@ export default function InterviewFlow({ sessionId, topic, mode, initialQuestions
                     color: #4c5673; background: #f3f5fa;
                     letter-spacing: 0.03em;
                 }
+                .iv-q-type.diff-easy { color: #0a8f7d; background: rgba(0,194,168,0.12); border-color: rgba(0,194,168,0.28); }
+                .iv-q-type.diff-medium { color: #b55f14; background: #fff4e8; border-color: #f3cda7; }
+                .iv-q-type.diff-hard { color: #c0392b; background: #fef0ee; border-color: #f4c5bf; }
 
                 .iv-question-text {
                     font-size: 18px;
@@ -536,8 +539,24 @@ export default function InterviewFlow({ sessionId, topic, mode, initialQuestions
                         <div className="iv-q-meta">
                             <span className="iv-q-num">Question {currentIndex + 1}</span>
                             <span className="iv-q-type">{currentQ.isCoding ? 'Coding' : 'Theoretical'}</span>
+                            {(() => {
+                                const match = currentQ.text.match(/^\[(Easy|Medium|Hard|Junior|Associate|Mid-level|Senior)\]\s*(.*)/i);
+                                if (match) {
+                                    const tag = match[1];
+                                    let diffClass = 'diff-medium';
+                                    if (tag.toLowerCase() === 'easy' || tag.toLowerCase() === 'junior' || tag.toLowerCase() === 'associate') diffClass = 'diff-easy';
+                                    else if (tag.toLowerCase() === 'hard' || tag.toLowerCase() === 'senior') diffClass = 'diff-hard';
+                                    return <span className={`iv-q-type ${diffClass}`}>{tag}</span>;
+                                }
+                                return null;
+                            })()}
                         </div>
-                        <p className="iv-question-text">{currentQ.text}</p>
+                        <p className="iv-question-text">
+                            {(() => {
+                                const match = currentQ.text.match(/^\[(Easy|Medium|Hard|Junior|Associate|Mid-level|Senior)\]\s*(.*)/i);
+                                return match ? match[2] : currentQ.text;
+                            })()}
+                        </p>
                     </div>
 
                     {/* Answer input */}
