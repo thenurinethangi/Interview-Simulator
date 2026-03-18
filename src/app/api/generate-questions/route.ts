@@ -28,6 +28,28 @@ export async function POST(req: Request) {
             return NextResponse.json({ error: 'Mode and input are required' }, { status: 400 });
         }
 
+        const sessionUrlMode = mode === 'cv' ? 'CV' : 'TOPIC';
+
+        // Fetch previous questions for this user to avoid repetition
+        const pastSessions = await db.session.findMany({
+            where: {
+                userId,
+                mode: sessionUrlMode,
+                ...(sessionUrlMode === 'TOPIC' ? { input: fitVarchar(input) } : {})
+            },
+            include: {
+                questions: {
+                    select: { text: true }
+                }
+            },
+            orderBy: {
+                createdAt: 'desc'
+            },
+            take: 5 // Last 5 sessions
+        });
+
+        const previousQuestions = pastSessions.flatMap((s: any) => s.questions.map((q: any) => q.text));
+
         const flavors = [
             'Emphasize edge cases and constraints; include at least one performance angle.',
             'Include one debugging-style coding question and one conceptual why/how question.',
@@ -42,6 +64,10 @@ export async function POST(req: Request) {
             promptContext = `Based on the following extracted CV text, generate exactly 5 interview questions targeting the candidate's skills. Questions level must match to the candidate current role level.\n\nCV Text:\n${input}`;
         } else {
             promptContext = `Generate exactly 5 interview questions about the following topic: "${input}".`;
+        }
+
+        if (previousQuestions.length > 0) {
+            promptContext += `\n\nIMPORTANT AVOID REPETITION:\nThe candidate has already been asked the following questions recently. DO NOT ask these exact questions or highly similar variations. You MUST generate fresh, new, and diverse questions:\n${previousQuestions.map((q: string) => '- ' + q).join('\n')}`;
         }
 
         const randomnessToken = randomUUID();
@@ -87,8 +113,6 @@ Example Output:
         }));
 
         // Save Session and Questions into Database
-        const sessionUrlMode = mode === 'cv' ? 'CV' : 'TOPIC';
-
         const dbSession = await db.session.create({
             data: {
                 mode: sessionUrlMode,
