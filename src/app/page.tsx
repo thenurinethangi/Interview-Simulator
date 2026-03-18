@@ -48,11 +48,10 @@ function HomeContent() {
 
   const extractTextFromPdf = async (file: File) => {
     const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
-    pdfjs.GlobalWorkerOptions.workerSrc = '';
     const arrayBuffer = await file.arrayBuffer();
     const bytes = new Uint8Array(arrayBuffer);
 
-    const loadingTask = pdfjs.getDocument({ data: bytes });
+    const loadingTask = (pdfjs as any).getDocument({ data: bytes, disableWorker: true });
     const pdf = await loadingTask.promise;
 
     let text = '';
