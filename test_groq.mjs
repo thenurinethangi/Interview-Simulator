@@ -4,7 +4,7 @@ dotenv.config();
 
 const apiKey = process.env.GROQ_API_KEY;
 
-const input = "React Hooks";
+const input = "Binary Trees & Graphs";
 const randomnessToken = "12345";
 const flavor = "Emphasize edge cases";
 
@@ -39,7 +39,7 @@ async function test() {
             Authorization: `Bearer ${apiKey}`
         },
         body: JSON.stringify({
-            model: 'llama-3.1-8b-instant',
+            model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
             messages: [
                 { role: 'system', content: 'You are a helpful assistant that strictly outputs valid JSON only.' },
                 { role: 'user', content: prompt }
