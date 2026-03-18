@@ -40,29 +40,61 @@ function HomeContent() {
 
   const [activeMode, setActiveMode] = useState<'cv' | 'topic' | null>(null);
   const [topic, setTopic] = useState('');
-  const [cvText, setCvText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMsg, setLoadingMsg] = useState('');
   const [dragOver, setDragOver] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const startCV = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const inputText = cvText.trim();
-    
-    if (!inputText) {
-      alert('Please paste your CV text before proceeding.');
+  const extractTextFromPdf = async (file: File) => {
+    const pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs');
+    pdfjs.GlobalWorkerOptions.workerSrc = '';
+    const arrayBuffer = await file.arrayBuffer();
+    const bytes = new Uint8Array(arrayBuffer);
+
+    const loadingTask = pdfjs.getDocument({ data: bytes });
+    const pdf = await loadingTask.promise;
+
+    let text = '';
+    for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber++) {
+      const page = await pdf.getPage(pageNumber);
+      const content = await page.getTextContent();
+      const pageText = content.items
+        .map((item: any) => ('str' in item ? item.str : ''))
+        .join(' ')
+        .trim();
+
+      if (pageText) text += pageText + '\n';
+    }
+
+    await pdf.destroy();
+    return text.trim();
+  };
+
+  const startCV = async (file: File) => {
+    const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    if (!isPdf) {
+      alert('Only PDF files are supported.');
+      return;
+    }
+
+    if (file.size > MAX_CV_SIZE_BYTES) {
+      alert(`PDF is too large. Please upload a file smaller than ${MAX_CV_SIZE_MB}MB.`);
       return;
     }
 
     setIsLoading(true);
-    setLoadingMsg('Analyzing curriculum…');
+    setLoadingMsg('Extracting curriculum from document…');
     try {
+      const extractedText = await extractTextFromPdf(file);
+      if (!extractedText) {
+        throw new Error('No readable text found in this PDF. If it is scanned/image-based, use a text-based PDF.');
+      }
+
       const uploadRes = await fetch('/api/upload-cv', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text: inputText }),
+        body: JSON.stringify({ text: extractedText }),
       });
       const uploadData = await parseApiResponse(uploadRes);
       if (!uploadRes.ok) throw new Error(uploadData.error || 'Failed to process CV');
@@ -219,6 +251,55 @@ function HomeContent() {
           color: var(--ink-soft);
         }
 
+        .dropzone {
+          border: 1.5px dashed var(--border);
+          border-radius: 10px;
+          padding: 56px 32px;
+          text-align: center;
+          background: var(--bg-main);
+          transition: all 0.2s;
+          cursor: pointer;
+        }
+
+        .dropzone:hover,
+        .dropzone.drag-over {
+          border-color: var(--ink-soft);
+          background: var(--bg-alt);
+        }
+
+        .drop-icon-wrap {
+          width: 52px;
+          height: 52px;
+          border-radius: 10px;
+          background: var(--bg-alt);
+          color: var(--ink-soft);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin: 0 auto 16px;
+          transition: all 0.2s;
+        }
+
+        .dropzone:hover .drop-icon-wrap,
+        .dropzone.drag-over .drop-icon-wrap {
+          background: var(--ink);
+          color: white;
+        }
+
+        .drop-title {
+          font-size: 15px;
+          font-weight: 600;
+          margin-bottom: 6px;
+        }
+
+        .drop-sub {
+          font-size: 13.5px;
+          color: var(--ink-soft);
+          line-height: 1.5;
+          max-width: 320px;
+          margin: 0 auto;
+        }
+
         .topic-chips {
           display: flex;
           flex-wrap: wrap;
@@ -294,6 +375,22 @@ function HomeContent() {
         .btn-primary:disabled {
           opacity: 0.5;
           cursor: not-allowed;
+        }
+
+        .btn-outline {
+          padding: 13px 24px;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          background: white;
+          color: var(--ink);
+          font-weight: 600;
+          font-size: 14.5px;
+          cursor: pointer;
+          transition: border-color 0.15s;
+        }
+
+        .btn-outline:hover {
+          border-color: var(--ink-soft);
         }
 
         .loading-overlay {
@@ -387,7 +484,7 @@ function HomeContent() {
               <div className="mode-icon"><FileText size={18} /></div>
               <div>
                 <div className="mode-label">Resume Evaluation</div>
-                <div className="mode-desc">Paste your CV — receive questions tailored to your experience.</div>
+                <div className="mode-desc">Upload your CV — receive questions tailored to your experience.</div>
               </div>
             </button>
 
@@ -405,25 +502,49 @@ function HomeContent() {
           </div>
 
           {activeMode === 'cv' && (
-            <form onSubmit={startCV}>
-              <textarea
-                className="topic-textarea"
-                value={cvText}
-                onChange={e => setCvText(e.target.value)}
-                placeholder="Paste your CV or resume here. Include your experience, skills, and background…"
-                rows={8}
+            <div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf"
+                style={{ display: 'none' }}
+                onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (file) startCV(file);
+                }}
               />
 
-              <button
-                type="submit"
-                disabled={!cvText.trim() || isLoading}
-                className="btn-primary"
-                style={{ marginTop: 16 }}
+              <div
+                className={`dropzone ${dragOver ? 'drag-over' : ''}`}
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={e => {
+                  e.preventDefault();
+                  setDragOver(false);
+                  const file = e.dataTransfer.files?.[0];
+                  if (file) startCV(file);
+                }}
               >
-                Generate Questions
-                <ArrowRight size={16} />
-              </button>
-            </form>
+                <div className="drop-icon-wrap"><Upload size={22} /></div>
+                <div className="drop-title">Drop your CV (PDF) here</div>
+                <div className="drop-sub">
+                  We’ll extract your background and generate a personalized practice session.
+                </div>
+
+                <button
+                  type="button"
+                  className="btn-outline"
+                  style={{ marginTop: 20 }}
+                  onClick={e => {
+                    e.stopPropagation();
+                    fileInputRef.current?.click();
+                  }}
+                >
+                  Browse File
+                </button>
+              </div>
+            </div>
           )}
 
           {activeMode === 'topic' && (
