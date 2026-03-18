@@ -28,6 +28,7 @@ IntelliView is constructed as a decoupled, layered full-stack application utiliz
 ### Context-Aware Session Orchestration
 * **Initialization Vectors:** Sessions can be initialized via PDF parsing (extracting technical stack and experience from a CV) or via explicit domain-topic parameters.
 * **Rubric Generation:** The system orchestrates the Groq API to compile a balanced matrix of conceptual inquiries and algorithmic challenges.
+* **Anti-Repetition Engine:** Integrates the user's historical session data into the AI prompt logic, strictly enforcing the exclusion of previously asked questions to deliver a consistently novel and diverse interview experience upon every generated session.
 
 ### Dual-Mode Interactive Assessment
 * **Unified Interface:** A singular, stateful workspace for handling both verbal/theoretical explanations and direct code implementation.
