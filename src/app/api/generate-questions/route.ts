@@ -63,7 +63,7 @@ export async function POST(req: Request) {
         if (mode === 'cv') {
             promptContext = `Based on the following extracted CV text, determine the candidate's experience level (e.g., Junior/Associate, Mid-level, Senior, etc.). Generate exactly 5 interview questions targeting the candidate's skills. The complexity and scope of the questions MUST strictly match their experience level. For example, if the position/experience is at the Associate level, the questions must be scoped to that level and not be overly hard or Senior-level. If the candidate is Senior, the questions should be suitably complex and challenging.\n\nCV Text:\n${input}`;
         } else {
-            promptContext = `Generate exactly 5 interview questions about the following topic: "${input}".`;
+            promptContext = `Generate exactly 5 interview questions about the following topic: "${input}". Ensure the 5 questions cover a strict variety of difficulty levels: e.g., 2 Easy, 2 Medium, and 1 Hard.`;
         }
 
         if (previousQuestions.length > 0) {
@@ -80,15 +80,15 @@ Rules:
 2. Mix theoretical and coding questions (include at least 1 coding question).
 3. Coding questions MUST be simple algorithms or functions (e.g., reverse a string, find max element). Do not ask for multi-file systems or complex architecture design.
 4. Vary phrasing, difficulty, and angle each time even for the same input. Do not repeat the same set across calls. Randomness token: ${randomnessToken}. Flavor: ${flavor}
-4. Return the result STRICTLY as a JSON object containing a "questions" array, where each object has:
-  - "text": string (the question text)
+5. Return the result STRICTLY as a JSON object containing a "questions" array, where each object has:
+  - "text": string (the question text. **MUST** start with the difficulty level in brackets, e.g., "[Easy] What is...", "[Medium] Explain...", "[Hard] Implement...")
   - "isCoding": boolean (true if the user should write code to answer in an IDE, false for a text explanation)
 
 Example Output:
 {
   "questions": [
-    { "text": "Explain the concept of Closure in JavaScript.", "isCoding": false },
-    { "text": "Write a function to check if a string is a palindrome.", "isCoding": true }
+    { "text": "[Easy] Explain the concept of Closure in JavaScript.", "isCoding": false },
+    { "text": "[Medium] Write a function to check if a string is a palindrome.", "isCoding": true }
   ]
 }`;
 
